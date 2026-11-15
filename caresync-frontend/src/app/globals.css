@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+/* Senior Accessibility Scaling */
+html.senior-large {
+  font-size: 115%;
+}
+
+html.senior-xl {
+  font-size: 130%;
+}
+
+html.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+}
+
+html.high-contrast .border-gray-100,
+html.high-contrast .border-gray-200 {
+  border-color: #000000 !important;
+}
+
+/* Touch Targets for elderly users with tremors */
+button, input, select, a {
+  min-height: 44px;
+}
+
+/* Smooth transitions */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

@@ -57,7 +57,10 @@ export default function JoinPasscodePage() {
           <div className="w-16 h-16 bg-gradient-to-tr from-blue-600 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-blue-500/20">
             <KeyRound className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Access Loved One&apos;s Profile</h1>
+          <span className="text-xs font-bold text-teal-600 uppercase tracking-widest bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+            CareSync Care Circle
+          </span>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-3">Access Loved One&apos;s Profile</h1>
           <p className="text-slate-600 mt-2 text-lg">
             Enter the secure 6-digit passcode shared by the patient or primary caregiver.
           </p>

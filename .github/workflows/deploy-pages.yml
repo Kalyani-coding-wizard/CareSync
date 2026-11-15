@@ -35,9 +35,44 @@ jobs:
         env:
           GITHUB_PAGES: 'true'
           NEXT_PUBLIC_BASE_PATH: '/CareSync'
-          NEXT_PUBLIC_ASSET_PREFIX: 'https://cdn.jsdelivr.net/gh/Kalyani-coding-wizard/CareSync@gh-pages/'
         run: |
           npm run build
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const root = path.resolve('out');
+          const source = path.join(root, '_next');
+          const files = [];
+          const walk = (dir) => {
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full);
+              else files.push(full);
+            }
+          };
+          walk(source);
+          const replacements = new Map();
+          for (const file of files) {
+            const relative = path.relative(source, file).split(path.sep).join('-');
+            const target = path.join(root, `asset-${relative}`);
+            fs.copyFileSync(file, target);
+            replacements.set(`/_next/${path.relative(source, file).split(path.sep).join('/')}`, `/${path.basename(target)}`);
+          }
+          const rewrite = (dir) => {
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (full === source) continue;
+              if (entry.isDirectory()) rewrite(full);
+              else if (/\.(html|js|css|txt)$/.test(entry.name)) {
+                let content = fs.readFileSync(full, 'utf8');
+                for (const [from, to] of replacements) content = content.split(from).join(to);
+                fs.writeFileSync(full, content);
+              }
+            }
+          };
+          rewrite(root);
+          fs.rmSync(source, { recursive: true, force: true });
+          NODE
           touch out/.nojekyll
 
       - name: Publish static site to gh-pages

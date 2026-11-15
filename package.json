@@ -1,0 +1,24 @@
+{
+  "name": "caresync-workspace",
+  "version": "1.0.0",
+  "description": "CareSync - Smart Elderly Care & Medication Management Monorepo",
+  "scripts": {
+    "test": "npm --prefix caresync-backend test",
+    "build": "npm --prefix caresync-backend run build && npm --prefix caresync-frontend run build",
+    "build:frontend": "npm --prefix caresync-frontend run build",
+    "build:backend": "npm --prefix caresync-backend run build",
+    "build:pages": "npm --prefix caresync-frontend run build:pages",
+    "dev:frontend": "npm --prefix caresync-frontend run dev",
+    "dev:backend": "npm --prefix caresync-backend run dev"
+  },
+  "keywords": [
+    "elderly-care",
+    "medication-management",
+    "hackathon",
+    "google-cloud-run",
+    "gemini-ai",
+    "firebase"
+  ],
+  "author": "CareSync Team",
+  "license": "MIT"
+}

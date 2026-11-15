@@ -1,6 +1,11 @@
 import { Router, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { processMedicationReminders, processMissedMedicationAlerts, processAppointmentReminders } from '../services/reminderService';
+import {
+  processMedicationReminders,
+  processMissedMedicationAlerts,
+  processAppointmentReminders,
+  processSmartEscalationLadder,
+} from '../services/reminderService';
 
 const router = Router();
 
@@ -14,17 +19,19 @@ router.post('/process', async (req, res): Promise<void> => {
   }
 
   try {
-    const [medResult, missedResult, apptResult] = await Promise.all([
+    const [medResult, missedResult, apptResult, escalationResult] = await Promise.all([
       processMedicationReminders(),
       processMissedMedicationAlerts(),
       processAppointmentReminders(),
+      processSmartEscalationLadder(),
     ]);
 
     res.json({
-      message: 'Reminders processed',
+      message: 'Reminders and escalation processed',
       medications: medResult,
       missed: missedResult,
       appointments: apptResult,
+      escalation: escalationResult,
       processedAt: new Date().toISOString(),
     });
   } catch (err) {

@@ -191,3 +191,126 @@ export async function processAppointmentReminders(): Promise<{ sent: number }> {
 
   return { sent };
 }
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SMART ESCALATION LADDER
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * 4-level smart escalation for missed medications:
+ * Level 1 (0–15 min):   Gentle nudge → Patient only
+ * Level 2 (15–30 min):  Primary caretaker notified
+ * Level 3 (30–60 min):  All family members notified
+ * Level 4 (60+ min):    Emergency contacts + Doctor notified
+ */
+export async function processSmartEscalationLadder(): Promise<{ escalated: number }> {
+  const firestore = db();
+  const now = new Date();
+
+  // Find missed records that haven't been fully escalated yet
+  const missedSnap = await firestore
+    .collection('adherence')
+    .where('status', '==', 'pending')
+    .get();
+
+  let escalated = 0;
+
+  for (const doc of missedSnap.docs) {
+    const record = doc.data();
+    const scheduledTime = new Date(record.scheduledTime);
+    const minutesPast = (now.getTime() - scheduledTime.getTime()) / 60000;
+
+    // Only escalate if past the scheduled window (at least 1 min late)
+    if (minutesPast < 1) continue;
+
+    // Determine escalation level
+    let escalationLevel: 1 | 2 | 3 | 4;
+    if (minutesPast < 15) {
+      escalationLevel = 1;
+    } else if (minutesPast < 30) {
+      escalationLevel = 2;
+    } else if (minutesPast < 60) {
+      escalationLevel = 3;
+    } else {
+      escalationLevel = 4;
+    }
+
+    // Skip if already escalated to this level or higher
+    const currentLevel = record.escalationLevel ?? 0;
+    if (currentLevel >= escalationLevel) continue;
+
+    try {
+      // Fetch profile
+      const profileDoc = await firestore.collection('profiles').doc(record.profileId).get();
+      if (!profileDoc.exists) continue;
+      const profile = profileDoc.data()!;
+
+      // Build recipient list based on level
+      const recipients: string[] = [];
+      const levelMessages: Record<number, string> = {
+        1: `⏰ Gentle reminder: ${record.medName} was scheduled ${Math.round(minutesPast)} min ago. No action yet detected.`,
+        2: `⚠️ CARETAKER ALERT: ${profile.name} has not taken ${record.medName} for ${Math.round(minutesPast)} minutes. Please check in.`,
+        3: `🚨 FAMILY ALERT: ${profile.name} has missed ${record.medName} by ${Math.round(minutesPast)} minutes. All family members notified. Please coordinate.`,
+        4: `🆘 EMERGENCY ESCALATION: ${profile.name} has not taken ${record.medName} for over ${Math.round(minutesPast)} minutes. Emergency contacts and doctor notified immediately.`,
+      };
+
+      if (escalationLevel >= 1 && profile.email) {
+        recipients.push(profile.email);
+      }
+      if (escalationLevel >= 2 && profile.primaryCaretakerEmail) {
+        recipients.push(profile.primaryCaretakerEmail);
+      }
+      if (escalationLevel >= 3 && Array.isArray(profile.familyEmails)) {
+        recipients.push(...profile.familyEmails);
+      }
+      if (escalationLevel >= 4) {
+        if (Array.isArray(profile.emergencyContacts)) {
+          recipients.push(...profile.emergencyContacts.map((c: { email: string }) => c.email).filter(Boolean));
+        }
+        if (profile.doctorEmail) {
+          recipients.push(profile.doctorEmail);
+        }
+      }
+
+      // Send escalation emails
+      const uniqueRecipients = [...new Set(recipients)].filter(Boolean);
+      for (const email of uniqueRecipients) {
+        await sendReminderEmail({
+          to: email,
+          patientName: profile.name,
+          type: escalationLevel >= 4 ? 'sos' : 'missed_medication',
+          details: {
+            medicationName: record.medName,
+            dosage: record.dosage,
+            scheduledTime: record.scheduledTime,
+            sosMessage: levelMessages[escalationLevel],
+          },
+        });
+      }
+
+      // Log escalation event in Firestore
+      await firestore.collection('escalation_events').add({
+        profileId: record.profileId,
+        adherenceId: doc.id,
+        medName: record.medName,
+        escalationLevel,
+        minutesPast: Math.round(minutesPast),
+        recipientsNotified: uniqueRecipients,
+        timestamp: now.toISOString(),
+        message: levelMessages[escalationLevel],
+      });
+
+      // Update the adherence record with current escalation level
+      await doc.ref.update({
+        escalationLevel,
+        lastEscalatedAt: now.toISOString(),
+      });
+
+      escalated++;
+    } catch (err) {
+      console.error(`[EscalationLadder] Error processing ${doc.id}:`, err);
+    }
+  }
+
+  return { escalated };
+}

@@ -19,7 +19,24 @@ import {
   Camera,
   Check,
   Undo2,
+  Heart,
+  Activity,
+  Smile,
+  TrendingUp,
+  Lightbulb,
 } from 'lucide-react';
+
+const HEALTH_TIPS = [
+  { tip: 'Take Metformin with your largest meal to significantly reduce nausea and GI discomfort.', tag: 'Metformin Tip' },
+  { tip: 'Stay well hydrated today! Good hydration helps your kidneys process Lisinopril and reduces dizziness risk.', tag: 'Hydration' },
+  { tip: 'Evening is the best time for Atorvastatin — cholesterol synthesis peaks at night, so your statin works hardest then.', tag: 'Atorvastatin Tip' },
+];
+
+const CARE_CIRCLE_STATUS = [
+  { name: 'Sarah', role: 'Daughter', initials: 'SV', online: true, lastSeen: 'Active now', color: 'bg-green-500' },
+  { name: 'Marcus', role: 'Son', initials: 'MV', online: false, lastSeen: 'Last seen 2h ago', color: 'bg-purple-500' },
+  { name: 'Dr. Chen', role: 'Primary Care', initials: 'JC', online: false, lastSeen: 'Last seen yesterday', color: 'bg-rose-500' },
+];
 
 export default function DashboardPage() {
   const {
@@ -32,6 +49,7 @@ export default function DashboardPage() {
 
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
   const [currentDateStr, setCurrentDateStr] = useState('Sunday, November 15, 2026');
+  const [tipIndex, setTipIndex] = useState(0);
 
   React.useEffect(() => {
     setCurrentDateStr(
@@ -328,6 +346,78 @@ export default function DashboardPage() {
                 <span>Check Drug Interactions</span>
                 <Pill className="w-4 h-4" />
               </Link>
+            </div>
+          </div>
+
+          {/* ── NEW: Health Tip of Day (Gemini-branded) ── */}
+          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-3xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-amber-700 font-bold text-sm">
+                <Sparkles className="w-4 h-4" />
+                <span>Gemini Health Tip</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTipIndex(i => (i + 1) % HEALTH_TIPS.length)}
+                className="text-xs text-amber-600 font-semibold hover:underline cursor-pointer"
+              >
+                Next tip →
+              </button>
+            </div>
+            <span className="text-xs bg-amber-200 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+              {HEALTH_TIPS[tipIndex].tag}
+            </span>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              {HEALTH_TIPS[tipIndex].tip}
+            </p>
+          </div>
+
+          {/* ── NEW: Smart Reminder Timing Insight ── */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-5">
+            <div className="flex items-center gap-2 text-blue-700 font-bold text-sm mb-3">
+              <TrendingUp className="w-4 h-4" />
+              <span>Smart Reminder Insights</span>
+            </div>
+            <div className="space-y-2">
+              {[
+                { icon: '📈', text: 'Your best adherence is at 8:00 AM — morning routine is locked in!' },
+                { icon: '⚠️', text: 'Evening Atorvastatin missed 2× this week. Suggest moving alarm to 7:30 PM.' },
+                { icon: '💧', text: 'Hydration reminders at 2 PM improve your symptom scores by next morning.' },
+              ].map((insight, i) => (
+                <div key={i} className="flex gap-2 text-sm text-slate-700 bg-slate-50 rounded-xl p-3">
+                  <span className="flex-shrink-0">{insight.icon}</span>
+                  <span>{insight.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── NEW: Care Circle Quick Status ── */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+                <Activity className="w-4 h-4 text-green-600" />
+                <span>Care Circle Status</span>
+              </div>
+              <a href="/dashboard/carefeed" className="text-xs text-blue-600 font-semibold hover:underline">
+                View Feed →
+              </a>
+            </div>
+            <div className="space-y-2">
+              {CARE_CIRCLE_STATUS.map(member => (
+                <div key={member.name} className="flex items-center gap-3">
+                  <div className="relative flex-shrink-0">
+                    <div className={`w-9 h-9 ${member.color} rounded-full flex items-center justify-center text-white text-xs font-black`}>
+                      {member.initials}
+                    </div>
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${member.online ? 'bg-green-500' : 'bg-slate-300'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900">{member.name}</p>
+                    <p className="text-xs text-slate-500">{member.role} · {member.lastSeen}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

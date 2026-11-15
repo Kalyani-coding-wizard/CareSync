@@ -20,6 +20,10 @@ import {
   ChevronDown,
   LogOut,
   UserCheck,
+  Smile,
+  FileText,
+  Activity,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function Navigation() {
@@ -44,7 +48,11 @@ export default function Navigation() {
     { href: '/dashboard/medications', label: 'Medications', icon: Pill },
     { href: '/dashboard/appointments', label: 'Appointments', icon: Calendar },
     { href: '/dashboard/adherence', label: 'Adherence', icon: BarChart3 },
-    { href: '/dashboard/ai', label: 'Gemini Health AI', icon: Bot, badge: 'AI' },
+    { href: '/dashboard/wellness', label: 'Wellness Log', icon: Smile },
+    { href: '/dashboard/report', label: 'Doctor Report', icon: FileText },
+    { href: '/dashboard/carefeed', label: 'Care Feed', icon: Activity },
+    { href: '/dashboard/handover', label: 'Handover', icon: ClipboardList },
+    { href: '/dashboard/ai', label: 'Gemini AI', icon: Bot, badge: 'AI' },
   ];
 
   const handleCopyPasscode = () => {

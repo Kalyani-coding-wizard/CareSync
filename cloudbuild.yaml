@@ -1,5 +1,36 @@
 steps:
-  # 1. Build Frontend container
+  # 1. Build Backend container
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/caresync-backend:latest'
+      - './caresync-backend'
+
+  # 2. Push Backend container
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/caresync-backend:latest'
+
+  # 3. Deploy Backend to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'caresync-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/caresync-backend:latest'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+
+  # 4. Build Frontend container
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -7,13 +38,13 @@ steps:
       - 'gcr.io/$PROJECT_ID/caresync-frontend:latest'
       - './caresync-frontend'
 
-  # 2. Push Frontend container to GCR
+  # 5. Push Frontend container
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/caresync-frontend:latest'
 
-  # 3. Deploy Frontend to Google Cloud Run
+  # 6. Deploy Frontend to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -31,4 +62,5 @@ steps:
       - '8080'
 
 images:
+  - 'gcr.io/$PROJECT_ID/caresync-backend:latest'
   - 'gcr.io/$PROJECT_ID/caresync-frontend:latest'

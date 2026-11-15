@@ -44,11 +44,6 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: '/CareSync'
         run: |
           npm run build
-          # GitHub Pages may treat underscore-prefixed asset directories as
-          # Jekyll paths even when .nojekyll is present.
-          mv out/_next out/next
-          find out -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.txt' \) \
-            -exec sed -i 's#/_next/#/next/#g' {} +
           touch out/.nojekyll
 
       - name: Upload Pages Artifact

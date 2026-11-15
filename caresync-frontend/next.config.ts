@@ -1,14 +1,15 @@
 import type { NextConfig } from "next";
 
 const isGithubPages = process.env.GITHUB_PAGES === "true" || process.env.NEXT_EXPORT === "true";
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const repoName = process.env.NEXT_PUBLIC_BASE_PATH || "/CareSync";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   ...(isGithubPages
     ? {
         output: "export",
-        basePath: basePath ? basePath : undefined,
+        basePath: repoName,
+        assetPrefix: `${repoName}/`,
         images: { unoptimized: true },
       }
     : {}),

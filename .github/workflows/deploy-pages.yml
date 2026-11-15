@@ -41,7 +41,7 @@ jobs:
         working-directory: ./caresync-frontend
         env:
           GITHUB_PAGES: 'true'
-          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path || '/CareSync' }}
+          NEXT_PUBLIC_BASE_PATH: '/CareSync'
         run: |
           npm run build
           touch out/.nojekyll
